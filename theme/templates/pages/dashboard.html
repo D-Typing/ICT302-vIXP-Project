@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — vIXP{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Status Banner -->
+<div class="flex items-center gap-3 bg-green-950 border border-green-800 rounded-xl px-5 py-3 mb-8">
+    <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+    <span class="text-green-300 text-sm font-medium">BGP Session Established</span>
+    <span class="text-green-600 text-xs ml-auto">Last updated: just now</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+
+    <!-- BGP Session Status -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-sm">BGP Sessions</p>
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <p class="text-3xl font-bold text-white">8 <span class="text-base font-normal text-gray-500">/ 10</span></p>
+        <div class="mt-3 flex gap-2">
+            <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">8 Established</span>
+            <span class="text-xs bg-yellow-900 text-yellow-400 px-2 py-0.5 rounded-full">2 Idle</span>
+        </div>
+    </div>
+
+    <!-- Active Peers -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-sm">Active Peers</p>
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </div>
+        <p class="text-3xl font-bold text-white">8</p>
+    </div>
+
+    <!-- Prefixes Advertised -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-sm">Prefixes Advertised</p>
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+            </svg>
+        </div>
+        <p class="text-3xl font-bold text-white">3,842</p>
+        <div class="mt-3 flex gap-2">
+            <span class="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full">2,310 IPv4</span>
+            <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">1,532 IPv6</span>
+        </div>
+    </div>
+</div>
+
+<!-- BGP Sessions Table + Prefix Filters -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    <!-- Active BGP Sessions -->
+    <div class="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl">
+        <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h2 class="font-semibold text-white">Active BGP Sessions</h2>
+            <span class="text-xs text-gray-500 font-mono">Route Server: AS65000</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-gray-400 text-left border-b border-gray-800 text-xs uppercase tracking-wider">
+                        <th class="px-6 py-3 font-medium">Peer ASN</th>
+                        <th class="px-6 py-3 font-medium">Peer IP</th>
+                        <th class="px-6 py-3 font-medium">State</th>
+                        <th class="px-6 py-3 font-medium">Uptime</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64500</span>
+                            <span class="text-gray-500 text-xs">Example University</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.10</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">14d 06:22:11</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64501</span>
+                            <span class="text-gray-500 text-xs">ISP Networks Pty Ltd</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.11</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">07d 13:44:02</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64502</span>
+                            <span class="text-gray-500 text-xs">CloudHost Australia</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.12</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-yellow-900 text-yellow-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> Idle
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500 text-xs font-mono">—</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64503</span>
+                            <span class="text-gray-500 text-xs">Regional Telecom Co</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.13</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">02d 09:15:33</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64504</span>
+                            <span class="text-gray-500 text-xs">Metro Fiber Ltd</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.14</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">05d 22:08:47</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64505</span>
+                            <span class="text-gray-500 text-xs">Pacific Exchange Ltd</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.15</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">10d 01:33:59</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64506</span>
+                            <span class="text-gray-500 text-xs">Southern Cross Net</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.16</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-yellow-900 text-yellow-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> Idle
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500 text-xs font-mono">—</td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-800 transition">
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-blue-400 block">AS64507</span>
+                            <span class="text-gray-500 text-xs">DataLink Systems</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-gray-300 text-xs">192.0.2.17</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Established
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">03d 17:52:20</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
+
+        <!-- Current Prefix Filters -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl">
+            <div class="px-6 py-4 border-b border-gray-800">
+                <h2 class="font-semibold text-white">Current Prefix Filters</h2>
+                <p class="text-gray-500 text-xs mt-0.5">Applied on inbound routes from peers</p>
+            </div>
+            <div class="p-6 space-y-4">
+
+                <!-- Filter Entry -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">IPv4 — Inbound</span>
+                        <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <ul class="space-y-1.5 font-mono text-xs">
+                        <li class="flex justify-between text-gray-300">
+                            <span>10.0.0.0/8</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>172.16.0.0/12</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>192.168.0.0/16</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>0.0.0.0/0</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>/24 or longer</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>All others</span>
+                            <span class="text-green-400">PERMIT</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- IPv6 Filter -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">IPv6 — Inbound</span>
+                        <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <ul class="space-y-1.5 font-mono text-xs">
+                        <li class="flex justify-between text-gray-300">
+                            <span>::/0 (default)</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>fc00::/7</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>/48 or longer</span>
+                            <span class="text-red-400">DENY</span>
+                        </li>
+                        <li class="flex justify-between text-gray-300">
+                            <span>All others</span>
+                            <span class="text-green-400">PERMIT</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Route Server Status -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <h2 class="font-semibold text-white mb-4">Route Server Status</h2>
+            <ul class="space-y-3 text-sm">
+                <li class="flex items-center justify-between">
+                    <div>
+                        <span class="text-gray-300 block">RS1 — AS65000</span>
+                        <span class="text-gray-500 text-xs font-mono">192.0.2.1</span>
+                    </div>
+                    <span class="text-green-400 font-medium text-xs">● Online</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <div>
+                        <span class="text-gray-300 block">RS2 — AS65000</span>
+                        <span class="text-gray-500 text-xs font-mono">192.0.2.2</span>
+                    </div>
+                    <span class="text-green-400 font-medium text-xs">● Online</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Documentation — vIXP{% endblock %}
+{% block page_title %}Documentation{% endblock %}
+
+{% block content %}
+<div class="flex gap-8">
+
+    <!-- Doc Sidebar -->
+    <aside class="w-56 shrink-0">
+        <nav class="sticky top-8 space-y-6 text-sm">
+            <div>
+                <p class="text-gray-500 uppercase text-xs font-semibold tracking-wider mb-2">Getting Started</p>
+                <ul class="space-y-1">
+                    <li><a href="#overview" class="text-blue-400 hover:underline block py-1">Overview</a></li>
+                    <li><a href="#requirements" class="text-gray-400 hover:text-white block py-1">Requirements</a></li>
+                    <li><a href="#joining" class="text-gray-400 hover:text-white block py-1">Joining the IXP</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="text-gray-500 uppercase text-xs font-semibold tracking-wider mb-2">Technical</p>
+                <ul class="space-y-1">
+                    <li><a href="#bgp" class="text-gray-400 hover:text-white block py-1">BGP Configuration</a></li>
+                    <li><a href="#routeserver" class="text-gray-400 hover:text-white block py-1">Route Server Policy</a></li>
+                    <li><a href="#prefixes" class="text-gray-400 hover:text-white block py-1">Prefix Limits</a></li>
+                    <li><a href="#communities" class="text-gray-400 hover:text-white block py-1">BGP Communities</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="text-gray-500 uppercase text-xs font-semibold tracking-wider mb-2">Policies</p>
+                <ul class="space-y-1">
+                    <li><a href="#peering" class="text-gray-400 hover:text-white block py-1">Peering Policy</a></li>
+                    <li><a href="#aup" class="text-gray-400 hover:text-white block py-1">Acceptable Use</a></li>
+                    <li><a href="#security" class="text-gray-400 hover:text-white block py-1">Security Policy</a></li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Doc Content -->
+    <div class="flex-1 max-w-3xl space-y-12 text-sm leading-relaxed">
+
+        <!-- Overview -->
+        <section id="overview">
+            <h2 class="text-2xl font-bold text-white mb-4">Overview</h2>
+            <p class="text-gray-400 mb-4">
+                The virtual Internet Exchange Point (vIXP) is a simulated network fabric designed
+                for educational and research purposes. It allows participants to establish BGP peering
+                sessions and exchange routing information in a controlled environment.
+            </p>
+            <div class="bg-blue-950 border border-blue-800 rounded-lg px-5 py-4 text-blue-300">
+                This is a virtual IXP. No real internet traffic is exchanged. All sessions are confined to the vIXP fabric.
+            </div>
+        </section>
+
+        <!-- Requirements -->
+        <section id="requirements">
+            <h2 class="text-2xl font-bold text-white mb-4">Requirements</h2>
+            <p class="text-gray-400 mb-4">To connect to the vIXP, participants must meet the following requirements:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-400">
+                <li>A valid Autonomous System Number (ASN)</li>
+                <li>A router capable of BGP-4 and MP-BGP</li>
+                <li>Registered IRR route objects for all announced prefixes</li>
+                <li>A published peering policy on PeeringDB</li>
+                <li>A 24/7 reachable NOC contact</li>
+            </ul>
+        </section>
+
+        <!-- BGP Config -->
+        <section id="bgp">
+            <h2 class="text-2xl font-bold text-white mb-4">BGP Configuration</h2>
+            <p class="text-gray-400 mb-4">
+                Configure your BGP session to the route servers using the following details:
+            </p>
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full text-sm border border-gray-800 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-800 text-gray-300">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium">Parameter</th>
+                            <th class="px-4 py-3 text-left font-medium">RS1</th>
+                            <th class="px-4 py-3 text-left font-medium">RS2</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800 text-gray-400">
+                        <tr><td class="px-4 py-3">ASN</td><td class="px-4 py-3 font-mono">AS65000</td><td class="px-4 py-3 font-mono">AS65000</td></tr>
+                        <tr><td class="px-4 py-3">IPv4 Address</td><td class="px-4 py-3 font-mono">192.0.2.1</td><td class="px-4 py-3 font-mono">192.0.2.2</td></tr>
+                        <tr><td class="px-4 py-3">IPv6 Address</td><td class="px-4 py-3 font-mono">2001:db8::1</td><td class="px-4 py-3 font-mono">2001:db8::2</td></tr>
+                        <tr><td class="px-4 py-3">MD5 Auth</td><td class="px-4 py-3">Optional</td><td class="px-4 py-3">Optional</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-500 text-xs mb-2">Example Cisco IOS configuration:</p>
+            <pre class="bg-gray-950 border border-gray-800 rounded-lg px-5 py-4 font-mono text-xs text-green-400 overflow-x-auto">
+router bgp 64500
+ neighbor 192.0.2.1 remote-as 65000
+ neighbor 192.0.2.1 description vIXP-RS1
+ neighbor 192.0.2.1 soft-reconfiguration inbound
+ !
+ address-family ipv4
+  neighbor 192.0.2.1 activate
+  neighbor 192.0.2.1 prefix-list ANNOUNCE out
+ exit-address-family</pre>
+        </section>
+
+        <!-- Peering Policy -->
+        <section id="peering">
+            <h2 class="text-2xl font-bold text-white mb-4">Peering Policy</h2>
+            <p class="text-gray-400 mb-4">
+                The vIXP operates an open peering policy. All members are encouraged to peer with
+                each other via the route servers. Bilateral sessions are also permitted.
+            </p>
+            <div class="bg-yellow-950 border border-yellow-800 rounded-lg px-5 py-4 text-yellow-300">
+                Members must not point a default route toward the route servers. Violation will
+                result in session termination.
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
