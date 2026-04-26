@@ -1,0 +1,10 @@
+.env
+.deps/
+.tmp/
+.pip-cache/
+venv/
+*.log
+__pycache__/
+*.pyc
+.postgres-data/
+.postgres-runtime/

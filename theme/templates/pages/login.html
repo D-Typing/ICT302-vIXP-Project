@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Login - vIXP{% endblock %}
+{% block page_title %}Login{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    {% if messages %}
+        <div class="space-y-3 mb-6">
+            {% for message in messages %}
+                <div class="border rounded-lg px-4 py-3 text-sm
+                            {% if message.tags == 'success' %}
+                                bg-green-950 border-green-800 text-green-300
+                            {% else %}
+                                bg-gray-900 border-gray-800 text-gray-300
+                            {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6 bg-gray-900 border border-gray-800 rounded-xl p-6" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="bg-red-950 border border-red-800 text-red-300 rounded-lg px-4 py-3 text-sm">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div>
+            <label for="{{ form.username.id_for_label }}" class="block text-sm text-gray-400 mb-2">Email</label>
+            <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
+                   value="{{ form.username.value|default_if_none:'' }}"
+                   class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5
+                          text-white placeholder-gray-500 text-sm focus:outline-none
+                          focus:border-blue-500 transition"
+                   autocomplete="username" required>
+            {% for error in form.username.errors %}<p class="text-red-400 text-xs mt-2">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div>
+            <label for="{{ form.password.id_for_label }}" class="block text-sm text-gray-400 mb-2">Password</label>
+            <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+                   class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5
+                          text-white placeholder-gray-500 text-sm focus:outline-none
+                          focus:border-blue-500 transition"
+                   autocomplete="current-password" required>
+            {% for error in form.password.errors %}<p class="text-red-400 text-xs mt-2">{{ error }}</p>{% endfor %}
+        </div>
+
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5
+                       rounded-lg text-sm transition">
+            Login
+        </button>
+    </form>
+</div>
+{% endblock %}
