@@ -6,5 +6,4 @@ venv/
 *.log
 __pycache__/
 *.pyc
-.postgres-data/
 .postgres-runtime/
