@@ -1,0 +1,8 @@
+.deps/
+.tmp/
+.pip-cache/
+venv/
+*.log
+__pycache__/
+*.pyc
+.postgres-runtime/
