@@ -12,8 +12,8 @@ This README explains how to run the project locally, create an admin superuser, 
 
 - Windows PowerShell
 - Python 3.12+ installed and available as `py`
-- PostgreSQL 17 installed (default path used in this README):
-  `C:\Program Files\PostgreSQL\17\bin`
+- PostgreSQL 18 installed (default path used in this README):
+  `C:\Program Files\PostgreSQL\18\bin`
 
 ## 2. Project Setup
 
@@ -55,14 +55,14 @@ This project uses a local PostgreSQL data directory: `.postgres-data`.
 Start PostgreSQL (keep this terminal open):
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\postgres.exe" -D ".postgres-data" -p 55432 -c "listen_addresses=127.0.0.1"
+& "C:\Program Files\PostgreSQL\18\bin\postgres.exe" -D ".postgres-data" -p 55432 -c "listen_addresses=127.0.0.1"
 ```
 
 ### If `.postgres-data` does not exist (first-time init)
 
 ```powershell
 Set-Content -Path ".pgpass.tmp" -Value "J0BrXDQU6kimMpgp0AMigCuhlabCTOMF"
-& "C:\Program Files\PostgreSQL\17\bin\initdb.exe" -D ".postgres-data" -U vixp_user --pwfile=".pgpass.tmp" --auth-host=scram-sha-256 --auth-local=trust -E UTF8 --locale=C
+& "C:\Program Files\PostgreSQL\18\bin\initdb.exe" -D ".postgres-data" -U vixp_user --pwfile=".pgpass.tmp" --auth-host=scram-sha-256 --auth-local=trust -E UTF8 --locale=C
 Remove-Item ".pgpass.tmp"
 ```
 
@@ -121,13 +121,13 @@ $env:PGPASSWORD="J0BrXDQU6kimMpgp0AMigCuhlabCTOMF"
 Check all registrations (latest first):
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 127.0.0.1 -p 55432 -U vixp_user -d vixp -c "SELECT pr.id, pr.organisation_name, pr.asn, pr.status, u.email, pr.submitted_at FROM pages_participantregistration pr JOIN pages_user u ON u.id = pr.user_id ORDER BY pr.submitted_at DESC;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -h 127.0.0.1 -p 55432 -U vixp_user -d vixp -c "SELECT pr.id, pr.organisation_name, pr.asn, pr.status, u.email, pr.submitted_at FROM pages_participantregistration pr JOIN pages_user u ON u.id = pr.user_id ORDER BY pr.submitted_at DESC;"
 ```
 
 Check only pending registrations:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 127.0.0.1 -p 55432 -U vixp_user -d vixp -c "SELECT pr.id, pr.organisation_name, pr.asn, u.email, pr.submitted_at FROM pages_participantregistration pr JOIN pages_user u ON u.id = pr.user_id WHERE pr.status = 'pending' ORDER BY pr.submitted_at DESC;"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -h 127.0.0.1 -p 55432 -U vixp_user -d vixp -c "SELECT pr.id, pr.organisation_name, pr.asn, u.email, pr.submitted_at FROM pages_participantregistration pr JOIN pages_user u ON u.id = pr.user_id WHERE pr.status = 'pending' ORDER BY pr.submitted_at DESC;"
 ```
 
 ## 9. Stop Services

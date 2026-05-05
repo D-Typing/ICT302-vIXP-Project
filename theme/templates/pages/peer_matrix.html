@@ -4,129 +4,134 @@
 
 {% block content %}
 
-<!-- Filters -->
-<div class="flex flex-wrap gap-4 mb-6">
-    <input type="text" placeholder="Search ASN or organisation..."
-           class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white
-                  placeholder-gray-500 focus:outline-none focus:border-blue-500 w-72 transition"/>
-    <select class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white
-                   focus:outline-none focus:border-blue-500 transition">
-        <option>All Statuses</option>
-        <option>Active</option>
-        <option>Pending</option>
-        <option>Inactive</option>
-    </select>
-    <select class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white
-                   focus:outline-none focus:border-blue-500 transition">
-        <option>All Types</option>
-        <option>ISP</option>
-        <option>University</option>
-        <option>Content Provider</option>
-    </select>
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center">
+        <p class="text-2xl font-bold text-green-400">{{ participants.count }}</p>
+        <p class="text-gray-400 text-xs mt-1">Approved Participants</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center">
+        <p class="text-2xl font-bold text-blue-400">
+            {% with total=participants.count %}
+            {% if total > 1 %}{{ total|add:"-1" }}{% else %}0{% endif %}
+            {% endwith %}
+        </p>
+        <p class="text-gray-400 text-xs mt-1">Possible Peering Pairs</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center">
+        <p class="text-2xl font-bold text-purple-400">{{ participants.count }}</p>
+        <p class="text-gray-400 text-xs mt-1">Connected to Route Server</p>
+    </div>
 </div>
 
 <!-- Legend -->
-<div class="flex items-center gap-6 mb-6 text-xs text-gray-400">
-    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Peering Active</span>
-    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span> Session Pending</span>
-    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-gray-600 inline-block"></span> No Session</span>
+<div class="flex items-center gap-6 mb-4 text-xs text-gray-400">
+    <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Peering Active
+    </span>
+    <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span> Session Pending
+    </span>
+    <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-gray-600 inline-block"></span> No Session
+    </span>
+    <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-gray-800 border border-gray-700 inline-block"></span> Self
+    </span>
 </div>
+
+{% if participants %}
 
 <!-- Matrix Table -->
 <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
     <table class="text-xs text-center">
         <thead>
             <tr>
-                <th class="sticky left-0 bg-gray-900 px-4 py-3 text-left text-gray-400 font-medium w-48 border-b border-r border-gray-800">
+                <!-- Top-left corner cell -->
+                <th class="sticky left-0 z-10 bg-gray-900 px-4 py-3 text-left text-gray-400
+                            font-medium border-b border-r border-gray-800 min-w-52">
                     ASN / Organisation
                 </th>
-                <!-- Column headers -->
-                <th class="px-3 py-3 text-gray-400 font-mono font-medium border-b border-gray-800 min-w-20">AS64500</th>
-                <th class="px-3 py-3 text-gray-400 font-mono font-medium border-b border-gray-800 min-w-20">AS64501</th>
-                <th class="px-3 py-3 text-gray-400 font-mono font-medium border-b border-gray-800 min-w-20">AS64502</th>
-                <th class="px-3 py-3 text-gray-400 font-mono font-medium border-b border-gray-800 min-w-20">AS64503</th>
-                <th class="px-3 py-3 text-gray-400 font-mono font-medium border-b border-gray-800 min-w-20">AS64504</th>
+                <!-- Column header for each participant -->
+                {% for col_participant in participants %}
+                <th class="px-3 py-3 border-b border-gray-800 min-w-24">
+                    <span class="font-mono text-blue-400 block">AS{{ col_participant.asn }}</span>
+                    <span class="text-gray-500 block truncate max-w-20 mx-auto"
+                          title="{{ col_participant.organisation_name }}">
+                        {{ col_participant.organisation_name|truncatechars:12 }}
+                    </span>
+                </th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-800">
-            <!-- Row 1 -->
+            {% for row_participant in participants %}
             <tr class="hover:bg-gray-800 transition">
-                <td class="sticky left-0 bg-gray-900 hover:bg-gray-800 px-4 py-3 text-left border-r border-gray-800">
-                    <span class="font-mono text-blue-400 block">AS64500</span>
-                    <span class="text-gray-500">Example University</span>
+
+                <!-- Row header -->
+                <td class="sticky left-0 z-10 bg-gray-900 group-hover:bg-gray-800
+                            px-4 py-3 text-left border-r border-gray-800">
+                    <span class="font-mono text-blue-400 block">
+                        AS{{ row_participant.asn }}
+                    </span>
+                    <span class="text-gray-500 text-xs block">
+                        {{ row_participant.organisation_name|truncatechars:20 }}
+                    </span>
+                    <!-- RS connection indicators -->
+                    <div class="flex gap-1 mt-1">
+                        {% if row_participant.connect_rs1 %}
+                        <span class="text-xs bg-blue-900 text-blue-400 px-1.5 py-0.5 rounded">RS1</span>
+                        {% endif %}
+                        {% if row_participant.connect_rs2 %}
+                        <span class="text-xs bg-purple-900 text-purple-400 px-1.5 py-0.5 rounded">RS2</span>
+                        {% endif %}
+                    </div>
                 </td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-700 inline-block" title="Self"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block" title="Active"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block" title="Active"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block" title="Pending"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-600 inline-block" title="No Session"></span></td>
-            </tr>
-            <!-- Row 2 -->
-            <tr class="hover:bg-gray-800 transition">
-                <td class="sticky left-0 bg-gray-900 hover:bg-gray-800 px-4 py-3 text-left border-r border-gray-800">
-                    <span class="font-mono text-blue-400 block">AS64501</span>
-                    <span class="text-gray-500">ISP Networks Pty Ltd</span>
+
+                <!-- Matrix cells -->
+                {% for col_participant in participants %}
+                <td class="py-4 px-3">
+                    {% if row_participant.asn == col_participant.asn %}
+                        <!-- Self cell -->
+                        <span class="w-3 h-3 rounded-full bg-gray-800 border border-gray-700
+                                     inline-block" title="Self"></span>
+                    {% else %}
+                        <!-- Look up peering status between these two participants -->
+                        {% with key=row_participant.asn %}
+                            {% with status=peering_map|default_if_none:"none" %}
+                                {# Django doesn't support dict lookups with tuples directly, #}
+                                {# so we use a template tag workaround via the view context. #}
+                                {# The view builds peering_map as {(asn_a, asn_b): status} #}
+                                {# We pass a flat lookup via peer_status template tag below. #}
+                            {% endwith %}
+                        {% endwith %}
+
+                        {# Fallback display — replace with get_peering_status tag once set up #}
+                        <span class="w-3 h-3 rounded-full bg-gray-600 inline-block"
+                              title="No Session"></span>
+                    {% endif %}
                 </td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-700 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span></td>
+                {% endfor %}
+
             </tr>
-            <!-- Row 3 -->
-            <tr class="hover:bg-gray-800 transition">
-                <td class="sticky left-0 bg-gray-900 hover:bg-gray-800 px-4 py-3 text-left border-r border-gray-800">
-                    <span class="font-mono text-blue-400 block">AS64502</span>
-                    <span class="text-gray-500">CloudHost Australia</span>
-                </td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-700 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-600 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-            </tr>
-            <!-- Row 4 -->
-            <tr class="hover:bg-gray-800 transition">
-                <td class="sticky left-0 bg-gray-900 hover:bg-gray-800 px-4 py-3 text-left border-r border-gray-800">
-                    <span class="font-mono text-blue-400 block">AS64503</span>
-                    <span class="text-gray-500">Regional Telecom Co</span>
-                </td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-600 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-700 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-            </tr>
-            <!-- Row 5 -->
-            <tr class="hover:bg-gray-800 transition">
-                <td class="sticky left-0 bg-gray-900 hover:bg-gray-800 px-4 py-3 text-left border-r border-gray-800">
-                    <span class="font-mono text-blue-400 block">AS64504</span>
-                    <span class="text-gray-500">Metro Fiber Ltd</span>
-                </td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-600 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span></td>
-                <td class="py-3"><span class="w-3 h-3 rounded-full bg-gray-700 inline-block"></span></td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>
 
-<!-- Summary -->
-<div class="mt-6 grid grid-cols-3 gap-4 max-w-lg">
-    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-green-400">12</p>
-        <p class="text-gray-400 text-xs mt-1">Active Sessions</p>
-    </div>
-    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-yellow-400">3</p>
-        <p class="text-gray-400 text-xs mt-1">Pending Sessions</p>
-    </div>
-    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-gray-400">5</p>
-        <p class="text-gray-400 text-xs mt-1">No Session</p>
-    </div>
+{% else %}
+<!-- Empty state -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-16 text-center">
+    <svg class="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+    </svg>
+    <p class="text-gray-400 font-medium mb-1">No participants yet</p>
+    <p class="text-gray-600 text-sm">
+        Approved registrations will appear here.
+        <a href="{% url 'register' %}" class="text-blue-400 hover:underline">Add one now →</a>
+    </p>
 </div>
+{% endif %}
 
 {% endblock %}
