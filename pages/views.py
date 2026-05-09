@@ -4,12 +4,39 @@ from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 
 from .forms import PublicRegistrationForm
-from .models import ParticipantRegistration, User
+from .models import (
+    ParticipantRegistration,
+    User,
+    BGPSessionStatus,
+    PrefixFilter,
+    PeeringSession,
+)
 
 
 @login_required
 def dashboard(request):
-    return render(request, 'pages/dashboard.html')
+    sessions = BGPSessionStatus.objects.select_related('participant').all()
+    established = sessions.filter(session_state=BGPSessionStatus.SessionState.ESTABLISHED)
+    global_filters = PrefixFilter.objects.filter(participant=None)
+
+    context = {
+        'sessions': sessions,
+        'established_count': established.count(),
+        'idle_count': sessions.exclude(
+            session_state=BGPSessionStatus.SessionState.ESTABLISHED
+        ).count(),
+        'total_peers': ParticipantRegistration.objects.filter(
+            status=ParticipantRegistration.Status.APPROVED
+        ).count(),
+        'total_prefixes_received': sum(s.prefixes_received for s in established),
+        'total_prefixes_advertised': sum(s.prefixes_advertised for s in established),
+        'ipv4_received': sum(s.prefixes_received for s in established.filter(family='ipv4')),
+        'ipv6_received': sum(s.prefixes_received for s in established.filter(family='ipv6')),
+        'ipv4_advertised': sum(s.prefixes_advertised for s in established.filter(family='ipv4')),
+        'ipv6_advertised': sum(s.prefixes_advertised for s in established.filter(family='ipv6')),
+        'prefix_filters': global_filters,
+    }
+    return render(request, 'pages/dashboard.html', context)
 
 
 def register(request):
@@ -46,4 +73,20 @@ def documentation(request):
 
 @login_required
 def peer_matrix(request):
-    return render(request, 'pages/peer_matrix.html')
+    participants = ParticipantRegistration.objects.filter(
+        status=ParticipantRegistration.Status.APPROVED
+    ).order_by('asn')
+
+    # Use "asn_a,asn_b" string keys instead of tuples
+    peering_map = {}
+    for ps in PeeringSession.objects.select_related('member_a', 'member_b'):
+        key_ab = f"{ps.member_a.asn},{ps.member_b.asn}"
+        key_ba = f"{ps.member_b.asn},{ps.member_a.asn}"
+        peering_map[key_ab] = ps.status
+        peering_map[key_ba] = ps.status
+
+    context = {
+        'participants': participants,
+        'peering_map': peering_map,
+    }
+    return render(request, 'pages/peer_matrix.html', context)
