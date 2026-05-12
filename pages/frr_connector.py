@@ -4,13 +4,13 @@ import paramiko
 # ── VM connection details ──────────────────────────────────────────
 ROUTE_SERVERS = {
     'RS1': {
-        'host': '192.168.x.10',   # Replace with your RS1 IP
-        'user': 'your_username',
+        'host': '151.158.219.194',
+        'user': 'declan00',
         'key_path': '/home/youruser/.ssh/ixp_key',
     },
     'RS2': {
-        'host': '192.168.x.20',   # Replace with your RS2 IP
-        'user': 'your_username',
+        'host': '151.158.219.195',
+        'user': 'declan00',
         'key_path': '/home/youruser/.ssh/ixp_key',
     },
 }
