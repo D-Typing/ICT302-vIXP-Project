@@ -1,0 +1,62 @@
+<aside class="flex w-64 bg-gray-900 border-r border-gray-800 flex-col fixed top-0 left-0 h-full z-20">
+    <div class="px-6 py-5 border-b border-gray-800">
+        <span class="text-blue-400 font-bold text-xl tracking-wide">vIXP</span>
+        <span class="text-gray-400 font-light text-xl"> Registry</span>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-1">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'home' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'home' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Home</span>
+            </a>
+            <a href="{% url 'lookingglass:summary' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.namespace == 'lookingglass' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Looking Glass</span>
+            </a>
+            <a href="{% url 'login' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'login' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Login</span>
+            </a>
+            <a href="{% url 'register' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'register' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Register</span>
+            </a>
+            <a href="{% url 'admin:login' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition">
+                <span>Admin Login</span>
+            </a>
+        {% else %}
+            <a href="{% url 'dashboard' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'dashboard' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'lookingglass:summary' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.namespace == 'lookingglass' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Looking Glass</span>
+            </a>
+            <a href="{% url 'peer_matrix' %}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'peer_matrix' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                <span>Peer Matrix</span>
+            </a>
+
+            {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'admin_hub' %}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'admin_hub' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition">
+                    <span>Admin Panel</span>
+                </a>
+            {% endif %}
+
+            <form method="post" action="{% url 'logout' %}" class="px-3 pt-2">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition">
+                    Logout
+                </button>
+            </form>
+        {% endif %}
+    </nav>
+
+    <div class="px-6 py-4 border-t border-gray-800 text-xs text-gray-500">
+        vIXP Registry v1.0
+    </div>
+</aside>

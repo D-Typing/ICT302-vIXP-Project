@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Home - vIXP{% endblock %}
+{% block page_title %}vIXP Home{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-white">Virtual Internet Exchange Point</h2>
+        <p class="text-gray-300 mt-3">
+            vIXP is an educational platform for simulating real IXP operations, including route server peering and Looking Glass visibility.
+        </p>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <a href="{% url 'lookingglass:summary' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Looking Glass</h3>
+            <p class="text-sm text-gray-400 mt-2">View live BGP sessions and route tables.</p>
+        </a>
+        <a href="{% url 'register' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Register</h3>
+            <p class="text-sm text-gray-400 mt-2">Submit participant registration for approval.</p>
+        </a>
+        <a href="{% url 'login' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Portal Login</h3>
+            <p class="text-sm text-gray-400 mt-2">Sign in to access dashboard tools.</p>
+        </a>
+        <a href="{% url 'admin:login' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Admin Login</h3>
+            <p class="text-sm text-gray-400 mt-2">Django admin access for staff and superusers.</p>
+        </a>
+    </section>
+</div>
+{% endblock %}

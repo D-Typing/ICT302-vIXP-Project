@@ -1,34 +1,10 @@
-# .gitignore
-
+.env
 .deps/
-
 .tmp/
-
 .pip-cache/
-
 venv/
-
 *.log
-
-.postgres-runtime/
-
-# Python
-venv/
 __pycache__/
 *.pyc
-*.pyo
-
-# Django
-staticfiles/
-media/
-
-# Environment variables
-.env
-*.env
-
-# Tailwind built output
-theme/static/css/dist/
-
-# OS files
-.DS_Store
-Thumbs.db
+.postgres-data/
+.postgres-runtime/

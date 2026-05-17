@@ -7,114 +7,55 @@
     <title>{% block title %}vIXP Registry{% endblock %}</title>
     {% tailwind_css %}
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex">
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+    <div class="flex min-h-screen">
+        {% include "components/sidebar.html" %}
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col fixed h-full">
-        <!-- Logo -->
-        <div class="px-6 py-5 border-b border-gray-800">
-            <span class="text-blue-400 font-bold text-xl tracking-wide">vIXP</span>
-            <span class="text-gray-400 font-light text-xl"> Registry</span>
+        <div class="flex-1 flex flex-col min-h-screen ml-64">
+            <header class="bg-gray-900 border-b border-gray-800 px-4 md:px-8 py-4 flex items-center justify-between">
+                <h1 class="text-base md:text-lg font-semibold text-white">{% block page_title %}{% endblock %}</h1>
+
+                <div class="flex items-center gap-3 md:gap-4">
+                    <span class="hidden md:inline text-xs bg-green-900 text-green-400 px-3 py-1 rounded-full font-medium">IXP Online</span>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'home' %}" class="text-xs md:text-sm text-gray-300 hover:text-white">Main Website</a>
+                        {% if user.is_staff or user.is_superuser %}
+                            <a href="{% url 'admin:index' %}" class="text-xs md:text-sm text-gray-300 hover:text-white">Admin Panel</a>
+                        {% endif %}
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs md:text-sm text-gray-300 hover:text-white">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-xs md:text-sm text-gray-300 hover:text-white">Login</a>
+                        <a href="{% url 'register' %}" class="text-xs md:text-sm text-gray-300 hover:text-white">Register</a>
+                        <a href="{% url 'admin:login' %}" class="text-xs md:text-sm text-gray-300 hover:text-white">Admin Login</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="flex-1 p-4 md:p-8">
+                {% if messages %}
+                    <div class="space-y-3 mb-6">
+                        {% for message in messages %}
+                            <div class="border rounded-lg px-4 py-3 text-sm
+                                        {% if message.tags == 'success' %}
+                                            bg-green-950 border-green-800 text-green-300
+                                        {% elif message.tags == 'error' %}
+                                            bg-red-950 border-red-800 text-red-300
+                                        {% else %}
+                                            bg-gray-900 border-gray-800 text-gray-200
+                                        {% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
         </div>
-
-        <!-- Nav Links -->
-        <nav class="flex-1 px-4 py-6 space-y-1">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                          {% if request.resolver_match.url_name == 'dashboard' %}
-                            bg-blue-600 text-white
-                          {% else %}
-                            text-gray-400 hover:bg-gray-800 hover:text-white
-                          {% endif %} transition">
-                    <!-- Icon -->
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/>
-                    </svg>
-                    Dashboard
-                </a>
-            {% endif %}
-
-            {% if not user.is_authenticated %}
-                <a href="{% url 'login' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                          {% if request.resolver_match.url_name == 'login' %}
-                            bg-blue-600 text-white
-                          {% else %}
-                            text-gray-400 hover:bg-gray-800 hover:text-white
-                          {% endif %} transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 12H3m12 0l-4-4m4 4l-4 4m7-10h2a2 2 0 012 2v8a2 2 0 01-2 2h-2"/>
-                    </svg>
-                    Login
-                </a>
-            {% endif %}
-
-            <a href="{% url 'register' %}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                      {% if request.resolver_match.url_name == 'register' %}
-                        bg-blue-600 text-white
-                      {% else %}
-                        text-gray-400 hover:bg-gray-800 hover:text-white
-                      {% endif %} transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
-                Register
-            </a>
-
-            <a href="{% url 'documentation' %}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                      {% if request.resolver_match.url_name == 'documentation' %}
-                        bg-blue-600 text-white
-                      {% else %}
-                        text-gray-400 hover:bg-gray-800 hover:text-white
-                      {% endif %} transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/>
-                </svg>
-                Documentation
-            </a>
-
-            {% if user.is_authenticated %}
-                <a href="{% url 'peer_matrix' %}"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                          {% if request.resolver_match.url_name == 'peer_matrix' %}
-                            bg-blue-600 text-white
-                          {% else %}
-                            text-gray-400 hover:bg-gray-800 hover:text-white
-                          {% endif %} transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                    </svg>
-                    Peer Matrix
-                </a>
-            {% endif %}
-        </nav>
-
-        <!-- Footer -->
-        <div class="px-6 py-4 border-t border-gray-800 text-xs text-gray-500">
-            vIXP Registry v1.0
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="ml-64 flex-1 flex flex-col min-h-screen">
-        <!-- Top Bar -->
-        <header class="bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between">
-            <h1 class="text-lg font-semibold text-white">{% block page_title %}{% endblock %}</h1>
-        </header>
-
-        <!-- Page Content -->
-        <main class="flex-1 p-8">
-            {% block content %}{% endblock %}
-        </main>
     </div>
-
 </body>
 </html>

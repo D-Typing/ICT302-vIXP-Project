@@ -1,358 +1,157 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard — vIXP{% endblock %}
+{% block title %}Dashboard - vIXP{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 
-<!-- BGP Status Banner -->
-{% if established_count > 0 %}
-<div class="flex items-center gap-3 bg-green-950 border border-green-800 rounded-xl px-5 py-3 mb-8">
-    <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
-    <span class="text-green-300 text-sm font-medium">
-        {{ established_count }} BGP Session{{ established_count|pluralize }} Established
-    </span>
-    <span class="text-green-600 text-xs ml-auto">Last synced: just now</span>
+<!-- Status Banner -->
+<div class="flex items-center gap-3 {% if banner_ok %}bg-green-950 border-green-800{% else %}bg-yellow-950 border-yellow-800{% endif %} border rounded-xl px-5 py-3 mb-8">
+    <span class="w-2.5 h-2.5 rounded-full {% if banner_ok %}bg-green-400{% else %}bg-yellow-400{% endif %} animate-pulse inline-block"></span>
+    <span class="{% if banner_ok %}text-green-300{% else %}text-yellow-300{% endif %} text-sm font-medium">{{ banner_text }}</span>
+    <span class="text-gray-400 text-xs ml-auto">Auto refresh: {{ refresh_seconds }}s</span>
 </div>
-{% else %}
-<div class="flex items-center gap-3 bg-red-950 border border-red-800 rounded-xl px-5 py-3 mb-8">
-    <span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-    <span class="text-red-300 text-sm font-medium">No BGP Sessions Established</span>
-    <span class="text-red-600 text-xs ml-auto">Check FRR connectivity</span>
-</div>
+
+{% if errors %}
+    <div class="bg-red-950 border border-red-800 rounded-xl px-5 py-3 mb-8">
+        <p class="text-red-300 text-sm font-medium mb-2">Some live data queries failed</p>
+        <ul class="text-red-200 text-xs space-y-1">
+            {% for err in errors %}
+                <li>{{ err }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endif %}
 
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-
-    <!-- BGP Sessions -->
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <div class="flex items-center justify-between mb-3">
             <p class="text-gray-400 text-sm">BGP Sessions</p>
-            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
         </div>
-        <p class="text-3xl font-bold text-white">
-            {{ established_count }}
-            <span class="text-base font-normal text-gray-500">/ {{ sessions.count }}</span>
-        </p>
-        <div class="mt-3 flex gap-2 flex-wrap">
-            <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">
-                {{ established_count }} Established
-            </span>
-            <span class="text-xs bg-yellow-900 text-yellow-400 px-2 py-0.5 rounded-full">
-                {{ idle_count }} Not Established
-            </span>
+        <p class="text-3xl font-bold text-white">{{ established_count }} <span class="text-base font-normal text-gray-500">/ {{ peer_total }}</span></p>
+        <div class="mt-3 flex gap-2">
+            <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">{{ established_count }} Established</span>
+            <span class="text-xs bg-yellow-900 text-yellow-400 px-2 py-0.5 rounded-full">{{ idle_count }} Non-established</span>
         </div>
     </div>
 
-    <!-- Active Peers -->
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <div class="flex items-center justify-between mb-3">
-            <p class="text-gray-400 text-sm">Approved Participants</p>
-            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
+            <p class="text-gray-400 text-sm">Active Peers</p>
         </div>
-        <p class="text-3xl font-bold text-white">{{ total_peers }}</p>
-        <p class="text-gray-500 text-xs mt-3">Active members on the IXP fabric</p>
+        <p class="text-3xl font-bold text-white">{{ active_peer_count }}</p>
     </div>
 
-    <!-- Prefixes Advertised -->
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <div class="flex items-center justify-between mb-3">
-            <p class="text-gray-400 text-sm">Prefixes Advertised</p>
-            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
-            </svg>
+            <p class="text-gray-400 text-sm">Prefixes Advertised/Received</p>
         </div>
-        <p class="text-3xl font-bold text-white">{{ total_prefixes_advertised }}</p>
-        <div class="mt-3 flex gap-2 flex-wrap">
-            <span class="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full">
-                {{ ipv4_advertised }} IPv4
-            </span>
-            <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">
-                {{ ipv6_advertised }} IPv6
-            </span>
+        <p class="text-3xl font-bold text-white">{{ prefixes_total }}</p>
+        <div class="mt-3 flex gap-2">
+            <span class="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full">{{ prefixes_ipv4_total }} IPv4</span>
+            <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">{{ prefixes_ipv6_total }} IPv6</span>
         </div>
     </div>
-
-    <!-- Prefixes Received -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <div class="flex items-center justify-between mb-3">
-            <p class="text-gray-400 text-sm">Prefixes Received</p>
-            <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-        </div>
-        <p class="text-3xl font-bold text-white">{{ total_prefixes_received }}</p>
-        <div class="mt-3 flex gap-2 flex-wrap">
-            <span class="text-xs bg-orange-900 text-orange-300 px-2 py-0.5 rounded-full">
-                {{ ipv4_received }} IPv4
-            </span>
-            <span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded-full">
-                {{ ipv6_received }} IPv6
-            </span>
-        </div>
-    </div>
-
 </div>
 
-<!-- Main Content Grid -->
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-    <!-- BGP Sessions Table -->
     <div class="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl">
         <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
             <h2 class="font-semibold text-white">Active BGP Sessions</h2>
-            <span class="text-xs text-gray-500 font-mono">FRRouting Route Server</span>
+            <span class="text-xs text-gray-500 font-mono">Live from RS1 + RS2</span>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-gray-400 text-left border-b border-gray-800 text-xs uppercase tracking-wider">
-                        <th class="px-6 py-3 font-medium">Participant</th>
                         <th class="px-6 py-3 font-medium">Route Server</th>
-                        <th class="px-6 py-3 font-medium">Family</th>
+                        <th class="px-6 py-3 font-medium">Peer ASN</th>
+                        <th class="px-6 py-3 font-medium">Peer IP</th>
                         <th class="px-6 py-3 font-medium">State</th>
                         <th class="px-6 py-3 font-medium">Uptime</th>
-                        <th class="px-6 py-3 font-medium">Pfx Rcvd</th>
-                        <th class="px-6 py-3 font-medium">Pfx Sent</th>
+                        <th class="px-6 py-3 font-medium">Prefixes</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800">
-                    {% for session in sessions %}
-                    <tr class="hover:bg-gray-800 transition">
-
-                        <!-- Participant -->
-                        <td class="px-6 py-4">
-                            <span class="font-mono text-blue-400 block">
-                                AS{{ session.participant.asn }}
-                            </span>
-                            <span class="text-gray-500 text-xs">
-                                {{ session.participant.organisation_name }}
-                            </span>
-                        </td>
-
-                        <!-- Route Server -->
-                        <td class="px-6 py-4">
-                            <span class="font-mono text-gray-300 text-xs">
-                                {{ session.route_server }}
-                            </span>
-                        </td>
-
-                        <!-- IP Family -->
-                        <td class="px-6 py-4">
-                            {% if session.family == 'ipv4' %}
-                            <span class="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full">
-                                IPv4
-                            </span>
-                            {% else %}
-                            <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">
-                                IPv6
-                            </span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Session State -->
-                        <td class="px-6 py-4">
-                            {% if session.session_state == 'Established' %}
-                            <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                Established
-                            </span>
-                            {% elif session.session_state == 'Idle' %}
-                            <span class="inline-flex items-center gap-1.5 bg-yellow-900 text-yellow-400 text-xs px-2 py-1 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                Idle
-                            </span>
-                            {% elif session.session_state == 'Active' %}
-                            <span class="inline-flex items-center gap-1.5 bg-blue-900 text-blue-400 text-xs px-2 py-1 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                                Active
-                            </span>
-                            {% else %}
-                            <span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                                {{ session.session_state }}
-                            </span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Uptime -->
-                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">
-                            {{ session.uptime_display }}
-                        </td>
-
-                        <!-- Prefixes Received -->
-                        <td class="px-6 py-4 font-mono
-                            {% if session.session_state == 'Established' %}
-                                text-gray-200
-                            {% else %}
-                                text-gray-600
-                            {% endif %}">
-                            {{ session.prefixes_received }}
-                        </td>
-
-                        <!-- Prefixes Advertised -->
-                        <td class="px-6 py-4 font-mono
-                            {% if session.session_state == 'Established' %}
-                                text-gray-200
-                            {% else %}
-                                text-gray-600
-                            {% endif %}">
-                            {{ session.prefixes_advertised }}
-                        </td>
-
-                    </tr>
+                    {% for row in bgp_sessions %}
+                        <tr class="hover:bg-gray-800 transition">
+                            <td class="px-6 py-4 text-gray-300 text-xs">{{ row.route_server }}</td>
+                            <td class="px-6 py-4 font-mono text-blue-400">AS{{ row.peer_asn }}</td>
+                            <td class="px-6 py-4 font-mono text-gray-300 text-xs">{{ row.peer_ip }}</td>
+                            <td class="px-6 py-4">
+                                {% if row.state|lower == "established" %}
+                                    <span class="inline-flex items-center gap-1.5 bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> {{ row.state }}
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 bg-yellow-900 text-yellow-400 text-xs px-2 py-1 rounded-full">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> {{ row.state }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-gray-400 text-xs font-mono">{{ row.uptime }}</td>
+                            <td class="px-6 py-4 text-gray-300 text-xs font-mono">{{ row.prefixes }}</td>
+                        </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                            <p class="text-lg mb-1">No BGP sessions found</p>
-                            <p class="text-xs">Run <span class="font-mono bg-gray-800 px-1.5 py-0.5 rounded">
-                                python manage.py sync_frr
-                            </span> to fetch data from FRRouting</p>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td colspan="6" class="px-6 py-6 text-center text-gray-400">No live BGP peers found.</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Right Column -->
     <div class="space-y-6">
-
-        <!-- Prefix Filters -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl">
             <div class="px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Current Prefix Filters</h2>
-                <p class="text-gray-500 text-xs mt-0.5">Global rules applied to all peers</p>
+                <h2 class="font-semibold text-white">Top IPv4 Routes</h2>
+                <p class="text-gray-500 text-xs mt-0.5">Live route sample</p>
             </div>
-            <div class="p-5 space-y-4">
-
-                <!-- IPv4 Filters -->
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">
-                            IPv4 — Inbound
-                        </span>
-                        <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">
-                            Active
-                        </span>
+            <div class="p-6 space-y-3">
+                {% for route in top_ipv4_routes %}
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <p class="font-mono text-xs text-gray-200">{{ route.prefix }}</p>
+                        <p class="text-xs text-gray-400 mt-1">Next hop: {{ route.next_hop }}</p>
+                        <p class="text-xs text-gray-500 mt-1 truncate">AS Path: {{ route.as_path }}</p>
                     </div>
-                    <ul class="space-y-1.5 font-mono text-xs">
-                        {% for f in prefix_filters %}
-                        {% if f.family == 'ipv4' and f.direction == 'inbound' %}
-                        <li class="flex justify-between text-gray-300">
-                            <span>{{ f.prefix }}</span>
-                            {% if f.action == 'deny' %}
-                            <span class="text-red-400">DENY</span>
-                            {% else %}
-                            <span class="text-green-400">PERMIT</span>
-                            {% endif %}
-                        </li>
-                        {% endif %}
-                        {% empty %}
-                        <li class="text-gray-600">No filters configured</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <!-- IPv6 Filters -->
-                <div class="bg-gray-800 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">
-                            IPv6 — Inbound
-                        </span>
-                        <span class="text-xs bg-green-900 text-green-400 px-2 py-0.5 rounded-full">
-                            Active
-                        </span>
-                    </div>
-                    <ul class="space-y-1.5 font-mono text-xs">
-                        {% for f in prefix_filters %}
-                        {% if f.family == 'ipv6' and f.direction == 'inbound' %}
-                        <li class="flex justify-between text-gray-300">
-                            <span>{{ f.prefix }}</span>
-                            {% if f.action == 'deny' %}
-                            <span class="text-red-400">DENY</span>
-                            {% else %}
-                            <span class="text-green-400">PERMIT</span>
-                            {% endif %}
-                        </li>
-                        {% endif %}
-                        {% empty %}
-                        <li class="text-gray-600">No filters configured</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
+                {% empty %}
+                    <p class="text-gray-400 text-sm">No IPv4 routes available.</p>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Route Server Status -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 class="font-semibold text-white mb-4">Route Server Status</h2>
-            {% with rs1_sessions=sessions|length %}
-            <ul class="space-y-4 text-sm">
-                <li class="flex items-center justify-between">
-                    <div>
-                        <span class="text-gray-300 block font-medium">RS1 — FRRouting</span>
-                        <span class="text-gray-500 text-xs">
-                            {{ sessions.count }} session{{ sessions.count|pluralize }} tracked
-                        </span>
-                    </div>
-                    {% if established_count > 0 %}
-                    <span class="text-green-400 font-medium text-xs">● Online</span>
-                    {% else %}
-                    <span class="text-red-400 font-medium text-xs">● Offline</span>
-                    {% endif %}
-                </li>
-                <li class="pt-3 border-t border-gray-800">
-                    <div class="grid grid-cols-2 gap-3 text-xs">
-                        <div class="bg-gray-800 rounded-lg p-3 text-center">
-                            <p class="text-purple-400 font-bold text-lg">
-                                {{ ipv4_received }}
-                            </p>
-                            <p class="text-gray-500 mt-0.5">IPv4 Rcvd</p>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl">
+            <div class="px-6 py-4 border-b border-gray-800">
+                <h2 class="font-semibold text-white">Route Server Status</h2>
+            </div>
+            <ul class="p-6 space-y-4 text-sm">
+                {% for rs in route_server_status %}
+                    <li class="flex items-start justify-between gap-4">
+                        <div>
+                            <span class="text-gray-300 block">{{ rs.name }}</span>
+                            <span class="text-gray-500 text-xs">{{ rs.active_line }}</span>
                         </div>
-                        <div class="bg-gray-800 rounded-lg p-3 text-center">
-                            <p class="text-blue-400 font-bold text-lg">
-                                {{ ipv6_received }}
-                            </p>
-                            <p class="text-gray-500 mt-0.5">IPv6 Rcvd</p>
-                        </div>
-                    </div>
-                </li>
+                        {% if rs.is_running %}
+                            <span class="text-green-400 font-medium text-xs">Online</span>
+                        {% else %}
+                            <span class="text-red-400 font-medium text-xs">Offline</span>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li class="text-gray-400 text-sm">No route server status available.</li>
+                {% endfor %}
             </ul>
-            {% endwith %}
         </div>
-
-        <!-- Last Sync Info -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <h2 class="font-semibold text-white mb-3">Sync Info</h2>
-            {% if sessions %}
-            <p class="text-gray-400 text-xs mb-1">Last FRR sync:</p>
-            <p class="font-mono text-gray-300 text-sm">
-                {{ sessions.0.last_seen|date:"Y-m-d H:i:s" }} UTC
-            </p>
-            {% else %}
-            <p class="text-gray-500 text-xs">No sync data available yet.</p>
-            {% endif %}
-            <p class="text-gray-600 text-xs mt-4">
-                Sync runs automatically every 60 seconds via cron.<br>
-                Manual sync:
-                <span class="font-mono bg-gray-800 px-1.5 py-0.5 rounded">
-                    manage.py sync_frr
-                </span>
-            </p>
-        </div>
-
     </div>
 </div>
+
+<script>
+    setTimeout(function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set("_ts", Date.now().toString());
+        window.location.replace(url.toString());
+    }, {{ refresh_seconds }} * 1000);
+</script>
 
 {% endblock %}

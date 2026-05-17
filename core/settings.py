@@ -13,24 +13,35 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def load_local_env():
+def ensure_local_env():
     env_file = BASE_DIR / '.env'
-    if not env_file.exists():
-        return
+    if env_file.exists():
+        return env_file
 
-    for raw_line in env_file.read_text(encoding='utf-8').splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith('#') or '=' not in line:
-            continue
-        key, value = line.split('=', 1)
-        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+    default_env_lines = [
+        "DJANGO_DEBUG=True",
+        "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1",
+        "POSTGRES_DB=vixp",
+        "POSTGRES_USER=vixp_user",
+        "POSTGRES_PASSWORD=J0BrXDQU6kimMpgp0AMigCuhlabCTOMF",
+        "POSTGRES_HOST=127.0.0.1",
+        "POSTGRES_PORT=55432",
+        "VM1_HOST=151.158.219.194",
+        "VM2_HOST=151.158.219.195",
+        "VM_USERNAME=basit00",
+        "VM_PASSWORD=basit00@software@@",
+    ]
+    env_file.write_text("\n".join(default_env_lines) + "\n", encoding='utf-8')
+    return env_file
 
 
-load_local_env()
+load_dotenv(ensure_local_env())
 
 
 # Quick-start development settings - unsuitable for production
@@ -43,11 +54,11 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in {'1', 'true', 'yes', 'on'}
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,151.158.219.196').split(',')
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
     if host.strip()
 ]
 
@@ -64,6 +75,7 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',
     'pages',
+    'lookingglass',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +93,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -151,7 +163,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Tailwind
 

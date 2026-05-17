@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Admin Hub - vIXP{% endblock %}
+{% block page_title %}Admin Navigation Hub{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-white">Admin Shortcuts</h2>
+        <p class="text-gray-300 mt-3">
+            Quickly move between Django administration and operational pages.
+        </p>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <a href="{% url 'admin:index' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Open Django Admin</h3>
+            <p class="text-sm text-gray-400 mt-2">Model and user management interface.</p>
+        </a>
+        <a href="{% url 'dashboard' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Open Dashboard</h3>
+            <p class="text-sm text-gray-400 mt-2">Portal dashboard for authenticated users.</p>
+        </a>
+        <a href="{% url 'lookingglass:summary' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Open Looking Glass</h3>
+            <p class="text-sm text-gray-400 mt-2">Live route-server visibility pages.</p>
+        </a>
+        <a href="{% url 'peer_matrix' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Open Peer Matrix</h3>
+            <p class="text-sm text-gray-400 mt-2">Peer view and matrix information.</p>
+        </a>
+        <a href="{% url 'admin:pages_user_changelist' %}" class="bg-gray-900 border border-gray-800 rounded-lg p-5 hover:border-blue-500 transition">
+            <h3 class="text-white font-medium">Open User Management</h3>
+            <p class="text-sm text-gray-400 mt-2">Direct link to Django auth users.</p>
+        </a>
+    </section>
+</div>
+{% endblock %}

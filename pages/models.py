@@ -207,10 +207,6 @@ class BGPSessionStatus(models.Model):
         OPENCONFIRM = "OpenConfirm", _("OpenConfirm")
         ESTABLISHED = "Established", _("Established")
 
-    class IPFamily(models.TextChoices):
-        IPV4 = "ipv4", _("IPv4")
-        IPV6 = "ipv6", _("IPv6")
-
     participant = models.ForeignKey(
         ParticipantRegistration,
         on_delete=models.CASCADE,
@@ -218,18 +214,6 @@ class BGPSessionStatus(models.Model):
     )
     route_server = models.CharField(max_length=3, choices=RouteServer.choices)
     session_state = models.CharField(max_length=20, choices=SessionState.choices, default=SessionState.IDLE)
-    
-    family = models.CharField(
-        max_length=4,
-        choices=IPFamily.choices,
-        default=IPFamily.IPV4,
-        verbose_name="IP family",
-    )
-    uptime_seconds = models.PositiveBigIntegerField(
-        default=0,
-        verbose_name="uptime in seconds",
-    )
-    
     last_seen = models.DateTimeField(default=timezone.now, db_index=True)
     prefixes_received = models.PositiveIntegerField(default=0)
     prefixes_advertised = models.PositiveIntegerField(default=0)
@@ -237,12 +221,7 @@ class BGPSessionStatus(models.Model):
     class Meta:
         ordering = ["participant", "route_server"]
         constraints = [
-            # Update unique constraint to include family since same participant
-            # can have both IPv4 and IPv6 sessions on the same route server
-            models.UniqueConstraint(
-                fields=["participant", "route_server", "family"],
-                name="unique_participant_rs_family"
-            ),
+            models.UniqueConstraint(fields=["participant", "route_server"], name="unique_participant_rs"),
         ]
         indexes = [
             models.Index(fields=["route_server", "session_state"], name="bgp_route_server_state_idx"),
@@ -252,117 +231,4 @@ class BGPSessionStatus(models.Model):
         verbose_name_plural = "BGP session statuses"
 
     def __str__(self):
-        return f"{self.participant} {self.route_server} ({self.family}): {self.session_state}"
-
-    @property
-    def uptime_display(self):
-        """Converts seconds to a readable string like 14d 06:22:11"""
-        if self.uptime_seconds == 0:
-            return "—"
-        days = self.uptime_seconds // 86400
-        hours = (self.uptime_seconds % 86400) // 3600
-        minutes = (self.uptime_seconds % 3600) // 60
-        seconds = self.uptime_seconds % 60
-        return f"{days}d {hours:02}:{minutes:02}:{seconds:02}"
-
-    @property
-    def is_established(self):
-        return self.session_state == self.SessionState.ESTABLISHED
-
-class PrefixFilter(models.Model):
-    """
-    Global or per-participant prefix filter rules applied by the route server.
-    If participant is null, the filter is a global rule applied to all peers.
-    """
-    class Action(models.TextChoices):
-        PERMIT = "permit", _("Permit")
-        DENY = "deny", _("Deny")
-
-    class IPFamily(models.TextChoices):
-        IPV4 = "ipv4", _("IPv4")
-        IPV6 = "ipv6", _("IPv6")
-
-    class Direction(models.TextChoices):
-        INBOUND = "inbound", _("Inbound")
-        OUTBOUND = "outbound", _("Outbound")
-
-    # Null = global filter, set = per-participant filter
-    participant = models.ForeignKey(
-        ParticipantRegistration,
-        on_delete=models.CASCADE,
-        related_name="prefix_filters",
-        null=True,
-        blank=True,
-        verbose_name="participant (null = global)",
-    )
-    prefix = models.CharField(max_length=50, verbose_name="prefix or rule description")
-    action = models.CharField(max_length=10, choices=Action.choices)
-    family = models.CharField(max_length=4, choices=IPFamily.choices)
-    direction = models.CharField(max_length=10, choices=Direction.choices)
-    max_length = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name="max prefix length (optional)",
-    )
-    description = models.CharField(max_length=200, blank=True)
-    order = models.PositiveIntegerField(default=0, help_text="Lower number = evaluated first")
-
-    class Meta:
-        ordering = ["family", "direction", "order"]
-        indexes = [
-            models.Index(fields=["family", "direction"], name="filter_family_direction_idx"),
-            models.Index(fields=["participant"], name="filter_participant_idx"),
-        ]
-        verbose_name = "prefix filter"
-        verbose_name_plural = "prefix filters"
-
-    def __str__(self):
-        scope = f"AS{self.participant.asn}" if self.participant else "Global"
-        return f"[{scope}] {self.prefix} — {self.action.upper()} ({self.family} {self.direction})"
-
-
-class PeeringSession(models.Model):
-    """
-    Tracks bilateral peering relationships between two participants.
-    Used to populate the peer matrix page.
-    """
-    class Status(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        PENDING = "pending", _("Pending")
-        NONE = "none", _("No Session")
-
-    member_a = models.ForeignKey(
-        ParticipantRegistration,
-        on_delete=models.CASCADE,
-        related_name="peering_as_a",
-    )
-    member_b = models.ForeignKey(
-        ParticipantRegistration,
-        on_delete=models.CASCADE,
-        related_name="peering_as_b",
-    )
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.NONE)
-    established_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["member_a__asn", "member_b__asn"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["member_a", "member_b"],
-                name="unique_peering_session"
-            ),
-            # Prevent A↔B and B↔A duplicates
-            models.CheckConstraint(
-                condition=~Q(member_a=models.F("member_b")),
-                name="peering_no_self_session",
-            ),
-        ]
-        indexes = [
-            models.Index(fields=["status"], name="peering_status_idx"),
-            models.Index(fields=["member_a", "status"], name="peering_a_status_idx"),
-        ]
-        verbose_name = "peering session"
-        verbose_name_plural = "peering sessions"
-
-    def __str__(self):
-        return f"AS{self.member_a.asn} ↔ AS{self.member_b.asn} [{self.status}]"
+        return f"{self.participant} {self.route_server}: {self.session_state}"

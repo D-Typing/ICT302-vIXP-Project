@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Looking Glass Summary - vIXP{% endblock %}
+{% block page_title %}Looking Glass - BGP Summary{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <aside class="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <h2 class="text-xs uppercase tracking-wide text-gray-400 mb-3">Route Servers</h2>
+        <div class="space-y-2 mb-6">
+            {% for rs in route_servers %}
+                <a href="{% url 'lookingglass:summary' %}?rs={{ rs.key }}&afi={{ selected_afi }}&q={{ search_query|urlencode }}"
+                   class="block px-3 py-2 rounded-md text-sm {% if selected_rs == rs.key %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                    {{ rs.label }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <h2 class="text-xs uppercase tracking-wide text-gray-400 mb-3">Address Family</h2>
+        <div class="space-y-2 mb-6">
+            <a href="?rs={{ selected_rs }}&afi=ipv4&q={{ search_query|urlencode }}"
+               class="block px-3 py-2 rounded-md text-sm {% if selected_afi == 'ipv4' %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                IPv4
+            </a>
+            <a href="?rs={{ selected_rs }}&afi=ipv6&q={{ search_query|urlencode }}"
+               class="block px-3 py-2 rounded-md text-sm {% if selected_afi == 'ipv6' %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+                IPv6
+            </a>
+        </div>
+
+        <h2 class="text-xs uppercase tracking-wide text-gray-400 mb-3">Views</h2>
+        <div class="space-y-2">
+            <a href="{% url 'lookingglass:summary' %}?rs={{ selected_rs }}&afi={{ selected_afi }}&q={{ search_query|urlencode }}"
+               class="block px-3 py-2 rounded-md text-sm bg-blue-600 text-white">BGP Summary</a>
+            <a href="{% url 'lookingglass:routes' %}?rs={{ selected_rs }}&afi={{ selected_afi }}&q={{ search_query|urlencode }}"
+               class="block px-3 py-2 rounded-md text-sm bg-gray-800 text-gray-300 hover:bg-gray-700">Routes</a>
+            <a href="{% url 'lookingglass:neighbors' %}?rs={{ selected_rs }}&afi={{ selected_afi }}&q={{ search_query|urlencode }}"
+               class="block px-3 py-2 rounded-md text-sm bg-gray-800 text-gray-300 hover:bg-gray-700">Neighbors</a>
+        </div>
+    </aside>
+
+    <section class="xl:col-span-8 space-y-6">
+        <form method="get" class="bg-gray-900 border border-gray-800 rounded-lg p-4 flex flex-col md:flex-row gap-3">
+            <input type="hidden" name="rs" value="{{ selected_rs }}">
+            <input type="hidden" name="afi" value="{{ selected_afi }}">
+            <input type="text" name="q" value="{{ search_query }}"
+                   placeholder="Filter by ASN or Neighbor IP"
+                   class="flex-1 bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500">
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">
+                Search
+            </button>
+        </form>
+
+        {% if error_message %}
+            <div class="bg-red-950 border border-red-800 text-red-300 rounded-lg px-4 py-3 text-sm">
+                {{ error_message }}
+            </div>
+        {% elif snapshot %}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 uppercase">Peers</p>
+                    <p class="text-2xl font-semibold text-white mt-2">{{ snapshot.stats.peer_count }}</p>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 uppercase">Established</p>
+                    <p class="text-2xl font-semibold text-green-400 mt-2">{{ snapshot.stats.established_peers }}</p>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 uppercase">Routes</p>
+                    <p class="text-2xl font-semibold text-white mt-2">{{ snapshot.stats.route_count }}</p>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                    <p class="text-xs text-gray-400 uppercase">Accepted</p>
+                    <p class="text-2xl font-semibold text-white mt-2">{{ snapshot.stats.accepted_route_count }}</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-lg overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-800 text-gray-300">
+                        <tr>
+                            <th class="text-left px-4 py-3 font-medium">Neighbor</th>
+                            <th class="text-left px-4 py-3 font-medium">ASN</th>
+                            <th class="text-left px-4 py-3 font-medium">State</th>
+                            <th class="text-left px-4 py-3 font-medium">Uptime</th>
+                            <th class="text-right px-4 py-3 font-medium">Msg Rcvd</th>
+                            <th class="text-right px-4 py-3 font-medium">Msg Sent</th>
+                            <th class="text-right px-4 py-3 font-medium">Pfx</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                        {% for row in snapshot.summary %}
+                            <tr class="hover:bg-gray-800/60">
+                                <td class="px-4 py-3 font-mono text-gray-100">{{ row.neighbor }}</td>
+                                <td class="px-4 py-3 text-gray-200">{{ row.asn }}</td>
+                                <td class="px-4 py-3">
+                                    {% if row.state|lower == 'established' %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-green-900 text-green-300">Established</span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs bg-yellow-900 text-yellow-300">{{ row.state }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-gray-300">{{ row.uptime }}</td>
+                                <td class="px-4 py-3 text-right text-gray-300">{{ row.msg_received }}</td>
+                                <td class="px-4 py-3 text-right text-gray-300">{{ row.msg_sent }}</td>
+                                <td class="px-4 py-3 text-right text-gray-200">{{ row.prefixes }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-4 py-6 text-center text-gray-400">No summary rows found for current filter.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
+    <aside class="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-4 space-y-4">
+        <div>
+            <h2 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Daemon Status</h2>
+            {% if snapshot %}
+                {% if snapshot.daemon_status.is_running %}
+                    <div class="text-green-300 text-sm font-medium">FRR Running</div>
+                {% else %}
+                    <div class="text-red-300 text-sm font-medium">FRR Not Running</div>
+                {% endif %}
+                <p class="text-xs text-gray-400 mt-2 break-words">{{ snapshot.daemon_status.active_line }}</p>
+            {% else %}
+                <p class="text-sm text-gray-400">Unavailable</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Telemetry</h2>
+            {% if snapshot %}
+                <p class="text-sm text-gray-300">Route Server: <span class="text-white">{{ snapshot.route_server.label }}</span></p>
+                <p class="text-sm text-gray-300">Family: <span class="text-white uppercase">{{ snapshot.afi }}</span></p>
+                <p class="text-sm text-gray-300">Last refresh: <span class="text-white">{{ snapshot.last_refresh|date:"H:i:s" }}</span></p>
+                <p class="text-sm text-gray-300">Auto refresh: <span class="text-white">{{ snapshot.refresh_seconds }}s</span></p>
+            {% endif %}
+        </div>
+    </aside>
+</div>
+
+{% if snapshot %}
+    <script src="{% static 'lookingglass/auto_refresh.js' %}"></script>
+    <script>
+        window.LOOKING_GLASS_REFRESH_SECONDS = {{ snapshot.refresh_seconds }};
+    </script>
+{% endif %}
+{% endblock %}
